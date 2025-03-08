@@ -103,12 +103,6 @@ function App() {
 		return (word.match(/[aeiou]/gi) || []).length
 	}
 
-	const getTotalHintCost = () => {
-		return Object.values(hints).reduce((total, hint) => {
-			return total + (hint.shown ? hint.cost : 0)
-		}, 0)
-	}
-
 	const selectNewWord = () => {
 		if (wordsPlayed >= 5) {
 			setGameCompleted(true)
