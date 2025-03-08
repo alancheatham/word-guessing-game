@@ -2,12 +2,21 @@ body {
 	display: flex;
 	justify-content: center;
 	align-items: center;
+	margin: 0;
+	min-height: 100vh;
+	padding: 1rem;
+	box-sizing: border-box;
+}
+
+* {
+	box-sizing: border-box;
 }
 
 .game-container {
 	max-width: 800px;
+	width: 100%;
 	margin: 0 auto;
-	padding: 2rem;
+	padding: 1.5rem;
 	text-align: center;
 	font-family: system-ui, -apple-system, sans-serif;
 }
@@ -15,6 +24,7 @@ body {
 h1 {
 	color: white;
 	margin-bottom: 2rem;
+	font-size: clamp(1.5rem, 5vw, 2.5rem);
 }
 
 .start-screen {
@@ -22,11 +32,13 @@ h1 {
 	flex-direction: column;
 	align-items: center;
 	gap: 1.5rem;
+	width: 100%;
 }
 
 .start-screen p {
-	font-size: 1.2rem;
+	font-size: clamp(1rem, 3vw, 1.2rem);
 	color: #34495e;
+	margin: 0.5rem 0;
 }
 
 .hint-info {
@@ -49,16 +61,19 @@ h1 {
 
 .score-container {
 	display: flex;
+	flex-wrap: wrap;
 	justify-content: center;
-	gap: 2rem;
-	margin-bottom: 2rem;
+	gap: 1rem;
+	margin-bottom: 1.5rem;
 }
 
 .score,
-.hints-used {
-	font-size: 1.5rem;
+.current-score,
+.words-remaining {
+	font-size: clamp(1rem, 3vw, 1.5rem);
 	font-weight: bold;
 	color: white;
+	padding: 0.5rem;
 }
 
 .hints-used {
@@ -79,29 +94,34 @@ h1 {
 	gap: 1rem;
 	width: 100%;
 	max-width: 600px;
-	padding: 1.5rem;
+	padding: 1rem;
 	background-color: #f8f9fa;
 	border-radius: 8px;
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
 }
 
 .word-pattern {
 	font-family: monospace;
-	font-size: 2.5rem;
+	font-size: clamp(1.5rem, 5vw, 2.5rem);
 	letter-spacing: 0.5rem;
 	color: #3498db;
 	font-weight: bold;
 	white-space: nowrap;
 	min-width: min-content;
+	padding: 0.5rem;
 }
 
 .next-hint {
-	font-size: 1.1rem;
+	font-size: clamp(0.9rem, 2.5vw, 1.1rem);
 	color: #e67e22;
 	background-color: #fff3e0;
 	padding: 0.5rem 1rem;
 	border-radius: 6px;
 	animation: pulse 2s infinite;
+	width: 100%;
+	max-width: 400px;
 }
 
 @keyframes pulse {
@@ -122,29 +142,36 @@ h1 {
 	gap: 0.5rem;
 	width: 100%;
 	max-width: 400px;
+	padding: 0 1rem;
 }
 
 .hint {
-	font-size: 1.2rem;
+	font-size: clamp(1rem, 2.5vw, 1.2rem);
 	color: #e67e22;
 	background-color: #fff3e0;
-	padding: 0.8rem 1.5rem;
+	padding: 0.8rem 1rem;
 	border-radius: 6px;
 	animation: fadeIn 0.3s ease;
+	word-break: break-word;
 }
 
 .input-area {
 	display: flex;
-	gap: 1rem;
+	flex-wrap: wrap;
+	gap: 0.5rem;
 	margin: 1rem 0;
+	justify-content: center;
+	width: 100%;
+	padding: 0 1rem;
 }
 
 input {
 	padding: 0.8rem 1.2rem;
-	font-size: 1.1rem;
+	font-size: clamp(1rem, 2.5vw, 1.1rem);
 	border: 2px solid #ddd;
 	border-radius: 6px;
-	width: 200px;
+	width: 100%;
+	max-width: 200px;
 	transition: border-color 0.3s ease;
 }
 
@@ -155,13 +182,15 @@ input:focus {
 
 button {
 	padding: 0.8rem 1.5rem;
-	font-size: 1rem;
+	font-size: clamp(0.9rem, 2.5vw, 1rem);
 	background-color: #3498db;
 	color: white;
 	border: none;
 	border-radius: 6px;
 	cursor: pointer;
 	transition: all 0.3s ease;
+	width: auto;
+	min-width: 100px;
 }
 
 button:hover {
@@ -179,10 +208,13 @@ button:hover {
 }
 
 .feedback {
-	font-size: 1.2rem;
+	font-size: clamp(1rem, 2.5vw, 1.2rem);
 	padding: 1rem;
 	border-radius: 6px;
 	animation: fadeIn 0.3s ease;
+	width: 100%;
+	max-width: 400px;
+	margin: 0 auto;
 }
 
 .feedback.correct {
@@ -207,8 +239,46 @@ button:hover {
 }
 
 @media (max-width: 600px) {
+	.game-container {
+		padding: 1rem;
+	}
+
 	.score-container {
 		flex-direction: column;
-		gap: 1rem;
+		align-items: center;
+		text-align: center;
+	}
+
+	.word-display {
+		padding: 0.8rem;
+	}
+
+	.input-area {
+		flex-direction: column;
+		align-items: center;
+	}
+
+	input {
+		max-width: 100%;
+	}
+
+	button {
+		width: 100%;
+		max-width: 200px;
+	}
+}
+
+@media (max-width: 350px) {
+	.game-container {
+		padding: 0.5rem;
+	}
+
+	h1 {
+		margin-bottom: 1rem;
+	}
+
+	.word-pattern {
+		font-size: 1.2rem;
+		letter-spacing: 0.3rem;
 	}
 }
