@@ -24,6 +24,7 @@ function App() {
 	const [currentHintIndex, setCurrentHintIndex] = useState(0)
 	const [wordsPlayed, setWordsPlayed] = useState(0)
 	const [gameCompleted, setGameCompleted] = useState(false)
+	const [revealedIndices, setRevealedIndices] = useState<number[]>([])
 	const intervalRef = useRef<number | undefined>(undefined)
 	const timeRef = useRef(10)
 	const scoreIntervalRef = useRef<number | undefined>(undefined)
@@ -35,7 +36,6 @@ function App() {
 		lastLetter: { shown: false, cost: 1 },
 		firstLetter: { shown: false, cost: 1 },
 	})
-	console.log(currentHintIndex)
 
 	// Score decay effect
 	useEffect(() => {
@@ -64,22 +64,41 @@ function App() {
 			intervalRef.current = undefined
 		}
 
-		if (gameStarted && currentHintIndex < hintSequence.length) {
+		if (gameStarted && currentWord) {
 			timeRef.current = timeUntilNextHint
 			intervalRef.current = window.setInterval(() => {
 				timeRef.current -= 1
 				setTimeUntilNextHint(timeRef.current)
 
 				if (timeRef.current <= 0) {
-					// Show next hint and reduce score
-					const nextHint = hintSequence[currentHintIndex]
-					console.log('Showing hint:', nextHint.type)
-					setHints((prev) => ({
-						...prev,
-						[nextHint.type]: { ...prev[nextHint.type], shown: true },
-					}))
-					setCurrentHintIndex((prev) => prev + 1)
-					setCurrentWordScore((prev) => Math.max(0, prev - nextHint.cost))
+					if (currentHintIndex < hintSequence.length) {
+						// Show next hint from the sequence
+						const nextHint = hintSequence[currentHintIndex]
+						setHints((prev) => ({
+							...prev,
+							[nextHint.type]: { ...prev[nextHint.type], shown: true },
+						}))
+						setCurrentHintIndex((prev) => prev + 1)
+						setCurrentWordScore((prev) => Math.max(0, prev - nextHint.cost))
+					} else {
+						// All standard hints shown, start revealing additional letters
+						const start = Math.floor((currentWord.length - 5) / 2)
+						const middleIndices = Array.from({ length: 5 }, (_, i) => start + i)
+						const availableIndices = Array.from({ length: currentWord.length }, (_, i) => i).filter(
+							(i) =>
+								i !== 0 && // not first letter
+								i !== currentWord.length - 1 && // not last letter
+								!middleIndices.includes(i) && // not middle letters
+								!revealedIndices.includes(i) // not already revealed
+						)
+
+						if (availableIndices.length > 0) {
+							const randomIndex =
+								availableIndices[Math.floor(Math.random() * availableIndices.length)]
+							setRevealedIndices((prev) => [...prev, randomIndex])
+							setCurrentWordScore((prev) => Math.max(0, prev - 0.5)) // Small penalty for additional letters
+						}
+					}
 					timeRef.current = 10
 					setTimeUntilNextHint(10)
 				}
@@ -92,7 +111,7 @@ function App() {
 				intervalRef.current = undefined
 			}
 		}
-	}, [gameStarted, currentHintIndex])
+	}, [gameStarted, currentHintIndex, currentWord, revealedIndices])
 
 	const getMiddleLetters = (word: string) => {
 		const start = Math.floor((word.length - 5) / 2)
@@ -117,6 +136,7 @@ function App() {
 		setTimeUntilNextHint(10)
 		setCurrentHintIndex(0)
 		setCurrentWordScore(INITIAL_WORD_SCORE)
+		setRevealedIndices([])
 		setHints({
 			category: { shown: false, cost: 1 },
 			length: { shown: false, cost: 1 },
@@ -130,11 +150,16 @@ function App() {
 		if (userGuess.toLowerCase() === currentWord.toLowerCase()) {
 			setFeedback('Correct! 🎉')
 			setScore(score + Math.max(0, currentWordScore))
-			setWordsPlayed(wordsPlayed + 1)
-			setTimeout(selectNewWord, 1500)
+			const nextWordsPlayed = wordsPlayed + 1
+			setWordsPlayed(nextWordsPlayed)
+
+			if (nextWordsPlayed >= 5) {
+				setTimeout(() => setGameCompleted(true), 1500)
+			} else {
+				setTimeout(selectNewWord, 1500)
+			}
 		} else {
 			setFeedback('Try again! ❌')
-			setCurrentWordScore((prev) => Math.max(0, prev - 0.5)) // Penalty for wrong guess
 		}
 	}
 
@@ -159,6 +184,11 @@ function App() {
 			if (hints.lastLetter.shown) {
 				pattern[pattern.length - 1] = currentWord[currentWord.length - 1]
 			}
+
+			// Show additionally revealed letters
+			revealedIndices.forEach((index) => {
+				pattern[index] = currentWord[index]
+			})
 
 			return pattern.join(' ')
 		}
@@ -204,7 +234,7 @@ function App() {
 					<p>Guess the complete word using the middle 5 letters as a clue!</p>
 					<p>You will play 5 words total - make each guess count!</p>
 					<p className="hint-info">Score decreases over time and when hints appear:</p>
-					<ul className="hint-costs">
+					{/* <ul className="hint-costs">
 						<li>Start with {INITIAL_WORD_SCORE} points per word</li>
 						<li>-0.1 points every second</li>
 						<li>-0.5 points for wrong guesses</li>
@@ -213,7 +243,7 @@ function App() {
 						<li>Vowel count: -1 point</li>
 						<li>Last letter: -1 point</li>
 						<li>First letter: -1 point</li>
-					</ul>
+					</ul> */}
 					<button onClick={startGame}>Start Game</button>
 				</div>
 			) : gameCompleted ? (
